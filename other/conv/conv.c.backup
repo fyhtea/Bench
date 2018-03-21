@@ -1,0 +1,121 @@
+/*************************************************************************
+	> File Name: conv.c
+	> Author: 
+	> Mail: 
+	> Created Time: 2017年11月28日 星期二 10时14分43秒
+ ************************************************************************/
+
+#include<stdio.h>
+#include<math.h>
+#include<time.h>
+#include<stdlib.h>
+
+//#define INDX(_row_size,_col_size,_i,_j,_k) ((_i)+_row_size*((_j)+_col_size*(_k))
+                                            
+typedef int data_type;
+//hardware kernel
+#define N 16
+/*
+void vec_mat_mult(int vec[N], int mat[N*N], int out[N]){
+    int i, j;
+    loopi:for(i=0;i<N;i++){
+        data_type sum = out[i];
+        loopj:for(j=0;j<N;j++){
+            sum=sum+vec[j]*mat[i*N+j];
+        }
+    }
+}
+*/
+
+void conv(int *input, int *weight, int *output){
+    //按照DianNao的写吧...
+    int iny=32,inx=32;
+    int Nyin=30, Nxin=30;    //output height & width;
+    int Ty=10, Tx=10;        //tiling factor of output h & w
+    int yy=0,xx=0;         //index of output h & w;
+
+    int nnn=0,Nn=16,Tnn=8;    //index,nums of output feature maps,tiling factor of outfeature maps;
+
+    int y=0,x=0,sy=10,sx=10;     //index,tiling factor2 of output h & w
+
+    int nn=0,Tn=4;         //index,tiling factor2 of outfeature maps
+
+    int n=0;             //index of outfeature;
+
+    int kx=0,ky=0,k=3;       //weight index and weight size;
+
+    int i=0,ii=0,Ni=16,Ti=4;      //index,channels and tiling factor of input feature map;
+
+/*
+    int *input,*weight,*output;
+
+    input  = (int*) malloc(sizeof(int) * iny * inx * Ni);
+    weight = (int*) malloc(sizeof(int) * k * k * Ni * Nn);
+    output = (int*) malloc(sizeof(int) * Nyin * Nxin * Nn);
+
+    int input[iny][inx][Ni];
+    int weight[k][k][Ni][Nn];
+    int output[Nyin][Nxin][Nn];
+    int sum[Nn];
+*/
+    //int *sum;
+    //sum = (int*) malloc(sizeof(int) * 16);
+    for(yy=0;yy<Nyin;yy+=Ty){                              //tiling for output height y
+        for(xx=0;xx<Nxin;xx+=Tx){                          //tiling for output width x
+            for(nnn=0;nnn<Nn;nnn+=Tnn){                    //tiling for output channel n
+                int yout = 0;
+                for(y = yy;y<yy+Ty;y+=sy){                 //tiling for y
+                    int xout = 0;
+                    for(x=xx;x<xx+Tx;x+=sx){               //tiling for x
+                        for(nn=nnn;nn<nnn+Tnn;nn+=Tn){     
+                            //for(n=nn; n<nn+Tn;n++)
+                            //    sum[n]=0;
+
+                            //sliding window
+                            for(ky=0;ky<k;ky++){
+                                for(kx=0;kx<k;kx++){
+                                  loopk:for(ii = 0;ii<Ni;ii+=Ti){
+                                       
+                                        //loop unrolling for accelerator kernel;                
+                                  loopi:for(n=nn;n<nn+Tn;n++){
+                                      int tmp=output[yout*480+xout*16+n];
+                                      loopj:for(i=ii;i<ii+Ti;i++){
+                                                tmp+=weight[ky*(768) + kx*(256) + n*4 + i]*input[(ky+y)*512+(kx+x)*16+i];
+                                            }
+                                      output[yout*480+xout*16+n] = tmp;
+                                        }
+                                    //vec_mat_mult(&input[],&weight[],&sum[]);
+
+                                    }
+                                }
+                            }
+                            //for(n=nn;n<nn+Tn;n++){
+                            //    output[yout*480+xout*16+n] = output[n];
+                            //}
+                        }
+                        xout++;
+                    }
+                    yout++;
+                }
+            }
+        }
+    }
+
+    printf("success!");
+
+}
+int main(){
+
+    
+    
+    int *input,*weight,*output;
+
+    input  = (int*) malloc(sizeof(int) * 32 * 32 * 16);
+    weight = (int*) malloc(sizeof(int) * 3 * 3 * 16 * 16);
+    output = (int*) malloc(sizeof(int) * 30 * 30 * 16);
+
+    conv(&input[0], &weight[0], &output[0]);
+
+    printf("success!");
+}
+

@@ -1,0 +1,7 @@
+partition,cyclic,input,102400,4,4
+partition,cyclic,weight,204800,4,16
+partition,cyclic,output,102400,4,4
+unrolling,conv,loopi,4
+flatten,conv,loopj
+pipelining,0
+cycle_time,10

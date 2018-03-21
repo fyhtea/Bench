@@ -1,0 +1,13 @@
+partition,cyclic,d_in,1024,4,8
+partition,cyclic,w_in,1024,4,64
+partition,cyclic,result,1024,4,8
+partition,complete,intermedia
+partition,complete,stage1
+partition,complete,stage2
+partition,complete,add_result
+partition,complete,mult_result
+flatten,VecMult,loopVecMult
+flatten,AdderTree,loopAddStage1
+unrolling,AdderTree,loopAddStage2,2
+pipelining,1
+cycle_time,10

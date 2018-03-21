@@ -1,0 +1,5 @@
+partition,cyclic,a,16,4,2
+partition,cyclic,b,16,4,2
+unrolling,func,loopi,2
+pipelining,1
+cycle_time,10

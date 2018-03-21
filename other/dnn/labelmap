@@ -1,0 +1,9 @@
+add_bias_to_activations/loopbias 38
+convolution_layer/loopm 96
+convolution_layer/loopn 100
+matrix_vector_product_with_bias_input_layer/loop1_i 48
+matrix_vector_product_with_bias_input_layer/loop1_j 50
+matrix_vector_product_with_bias_output_layer/loop3_i 76
+matrix_vector_product_with_bias_output_layer/loop3_j 78
+matrix_vector_product_with_bias_second_layer/loop2_i 62
+matrix_vector_product_with_bias_second_layer/loop2_j 64

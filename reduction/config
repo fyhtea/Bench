@@ -1,0 +1,4 @@
+partition,cyclic,in,100,4,20
+unrolling,reduction,sum,20
+pipelining,0
+cycle_time,10

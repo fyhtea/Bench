@@ -1,0 +1,559 @@
+; ModuleID = 'dnn.c'
+target datalayout = "e-p:64:64:64-i1:8:8-i8:8:8-i16:16:16-i32:32:32-i64:64:64-f32:32:32-f64:64:64-v64:64:64-v128:128:128-a0:0:64-s0:64:64-f80:128:128-n8:16:32:64-S128"
+target triple = "x86_64-unknown-linux-gnu"
+
+@.str = private unnamed_addr constant [7 x i8] c"i:%f \0A\00", align 1
+
+; Function Attrs: nounwind uwtable
+define void @add_bias_to_activations(i32* nocapture readonly %biases, i32* nocapture %activations, i32 %size) #0 {
+  tail call void @llvm.dbg.value(metadata !{i32* %biases}, i64 0, metadata !12), !dbg !121
+  tail call void @llvm.dbg.value(metadata !{i32* %activations}, i64 0, metadata !13), !dbg !122
+  tail call void @llvm.dbg.value(metadata !{i32 %size}, i64 0, metadata !14), !dbg !123
+  tail call void @llvm.dbg.value(metadata !2, i64 0, metadata !15), !dbg !124
+  %1 = icmp sgt i32 %size, 0, !dbg !124
+  br i1 %1, label %.lr.ph, label %._crit_edge, !dbg !124
+
+.lr.ph:                                           ; preds = %0, %.lr.ph
+  %indvars.iv = phi i64 [ %indvars.iv.next, %.lr.ph ], [ 0, %0 ]
+  %2 = getelementptr inbounds i32* %activations, i64 %indvars.iv, !dbg !126
+  %3 = load i32* %2, align 4, !dbg !126, !tbaa !128
+  %4 = getelementptr inbounds i32* %biases, i64 %indvars.iv, !dbg !126
+  %5 = load i32* %4, align 4, !dbg !126, !tbaa !128
+  %6 = add nsw i32 %5, %3, !dbg !126
+  store i32 %6, i32* %2, align 4, !dbg !126, !tbaa !128
+  %indvars.iv.next = add nuw nsw i64 %indvars.iv, 1, !dbg !124
+  %lftr.wideiv = trunc i64 %indvars.iv.next to i32, !dbg !124
+  %exitcond = icmp eq i32 %lftr.wideiv, %size, !dbg !124
+  br i1 %exitcond, label %._crit_edge, label %.lr.ph, !dbg !124
+
+._crit_edge:                                      ; preds = %.lr.ph, %0
+  ret void, !dbg !132
+}
+
+; Function Attrs: nounwind readnone
+declare void @llvm.dbg.declare(metadata, metadata) #1
+
+; Function Attrs: nounwind uwtable
+define void @matrix_vector_product_with_bias_input_layer(i32* nocapture readonly %biases, i32* nocapture readonly %weights, i32* nocapture %activations, i32* nocapture readonly %input_sample) #0 {
+  tail call void @llvm.dbg.value(metadata !{i32* %biases}, i64 0, metadata !20), !dbg !133
+  tail call void @llvm.dbg.value(metadata !{i32* %weights}, i64 0, metadata !21), !dbg !134
+  tail call void @llvm.dbg.value(metadata !{i32* %activations}, i64 0, metadata !22), !dbg !135
+  tail call void @llvm.dbg.value(metadata !{i32* %input_sample}, i64 0, metadata !23), !dbg !136
+  tail call void @llvm.dbg.value(metadata !2, i64 0, metadata !25), !dbg !137
+  br label %1, !dbg !137
+
+; <label>:1                                       ; preds = %13, %0
+  %indvars.iv3 = phi i64 [ 0, %0 ], [ %indvars.iv.next4, %13 ]
+  %2 = getelementptr inbounds i32* %activations, i64 %indvars.iv3, !dbg !139
+  store i32 0, i32* %2, align 4, !dbg !139, !tbaa !128
+  tail call void @llvm.dbg.value(metadata !2, i64 0, metadata !24), !dbg !141
+  %3 = mul nsw i64 %indvars.iv3, 10, !dbg !143
+  br label %4, !dbg !141
+
+; <label>:4                                       ; preds = %4, %1
+  %indvars.iv = phi i64 [ 0, %1 ], [ %indvars.iv.next, %4 ]
+  %5 = add nsw i64 %indvars.iv, %3, !dbg !143
+  %6 = getelementptr inbounds i32* %weights, i64 %5, !dbg !143
+  %7 = load i32* %6, align 4, !dbg !143, !tbaa !128
+  %8 = getelementptr inbounds i32* %input_sample, i64 %indvars.iv, !dbg !143
+  %9 = load i32* %8, align 4, !dbg !143, !tbaa !128
+  %10 = mul nsw i32 %9, %7, !dbg !143
+  %11 = load i32* %2, align 4, !dbg !143, !tbaa !128
+  %12 = add nsw i32 %11, %10, !dbg !143
+  store i32 %12, i32* %2, align 4, !dbg !143, !tbaa !128
+  %indvars.iv.next = add nuw nsw i64 %indvars.iv, 1, !dbg !141
+  %exitcond = icmp eq i64 %indvars.iv.next, 10, !dbg !141
+  br i1 %exitcond, label %13, label %4, !dbg !141
+
+; <label>:13                                      ; preds = %4
+  %indvars.iv.next4 = add nuw nsw i64 %indvars.iv3, 1, !dbg !137
+  %exitcond5 = icmp eq i64 %indvars.iv.next4, 5, !dbg !137
+  br i1 %exitcond5, label %14, label %1, !dbg !137
+
+; <label>:14                                      ; preds = %13
+  tail call void @add_bias_to_activations(i32* %biases, i32* %activations, i32 5) #4, !dbg !145
+  ret void, !dbg !146
+}
+
+; Function Attrs: nounwind uwtable
+define void @matrix_vector_product_with_bias_second_layer(i32* nocapture readonly %biases, i32* nocapture readonly %weights, i32* nocapture %activations, i32* nocapture readonly %input_activations) #0 {
+  tail call void @llvm.dbg.value(metadata !{i32* %biases}, i64 0, metadata !28), !dbg !147
+  tail call void @llvm.dbg.value(metadata !{i32* %weights}, i64 0, metadata !29), !dbg !148
+  tail call void @llvm.dbg.value(metadata !{i32* %activations}, i64 0, metadata !30), !dbg !149
+  tail call void @llvm.dbg.value(metadata !{i32* %input_activations}, i64 0, metadata !31), !dbg !150
+  tail call void @llvm.dbg.value(metadata !2, i64 0, metadata !32), !dbg !151
+  br label %1, !dbg !151
+
+; <label>:1                                       ; preds = %13, %0
+  %indvars.iv3 = phi i64 [ 0, %0 ], [ %indvars.iv.next4, %13 ]
+  %2 = getelementptr inbounds i32* %activations, i64 %indvars.iv3, !dbg !153
+  store i32 0, i32* %2, align 4, !dbg !153, !tbaa !128
+  tail call void @llvm.dbg.value(metadata !2, i64 0, metadata !33), !dbg !155
+  %3 = mul nsw i64 %indvars.iv3, 5, !dbg !157
+  br label %4, !dbg !155
+
+; <label>:4                                       ; preds = %4, %1
+  %indvars.iv = phi i64 [ 0, %1 ], [ %indvars.iv.next, %4 ]
+  %5 = add nsw i64 %indvars.iv, %3, !dbg !157
+  %6 = getelementptr inbounds i32* %weights, i64 %5, !dbg !157
+  %7 = load i32* %6, align 4, !dbg !157, !tbaa !128
+  %8 = getelementptr inbounds i32* %input_activations, i64 %indvars.iv, !dbg !157
+  %9 = load i32* %8, align 4, !dbg !157, !tbaa !128
+  %10 = mul nsw i32 %9, %7, !dbg !157
+  %11 = load i32* %2, align 4, !dbg !157, !tbaa !128
+  %12 = add nsw i32 %11, %10, !dbg !157
+  store i32 %12, i32* %2, align 4, !dbg !157, !tbaa !128
+  %indvars.iv.next = add nuw nsw i64 %indvars.iv, 1, !dbg !155
+  %exitcond = icmp eq i64 %indvars.iv.next, 5, !dbg !155
+  br i1 %exitcond, label %13, label %4, !dbg !155
+
+; <label>:13                                      ; preds = %4
+  %indvars.iv.next4 = add nuw nsw i64 %indvars.iv3, 1, !dbg !151
+  %exitcond5 = icmp eq i64 %indvars.iv.next4, 5, !dbg !151
+  br i1 %exitcond5, label %14, label %1, !dbg !151
+
+; <label>:14                                      ; preds = %13
+  tail call void @add_bias_to_activations(i32* %biases, i32* %activations, i32 5) #4, !dbg !159
+  ret void, !dbg !160
+}
+
+; Function Attrs: nounwind uwtable
+define void @matrix_vector_product_with_bias_output_layer(i32* nocapture readonly %biases, i32* nocapture readonly %weights, i32* nocapture %activations, i32* nocapture readonly %input_activations) #0 {
+  tail call void @llvm.dbg.value(metadata !{i32* %biases}, i64 0, metadata !36), !dbg !161
+  tail call void @llvm.dbg.value(metadata !{i32* %weights}, i64 0, metadata !37), !dbg !162
+  tail call void @llvm.dbg.value(metadata !{i32* %activations}, i64 0, metadata !38), !dbg !163
+  tail call void @llvm.dbg.value(metadata !{i32* %input_activations}, i64 0, metadata !39), !dbg !164
+  tail call void @llvm.dbg.value(metadata !2, i64 0, metadata !41), !dbg !165
+  store i32 0, i32* %activations, align 4, !dbg !167, !tbaa !128
+  tail call void @llvm.dbg.value(metadata !2, i64 0, metadata !40), !dbg !169
+  br label %1, !dbg !169
+
+; <label>:1                                       ; preds = %1, %0
+  %indvars.iv = phi i64 [ 0, %0 ], [ %indvars.iv.next, %1 ]
+  %2 = getelementptr inbounds i32* %weights, i64 %indvars.iv, !dbg !171
+  %3 = load i32* %2, align 4, !dbg !171, !tbaa !128
+  %4 = getelementptr inbounds i32* %input_activations, i64 %indvars.iv, !dbg !171
+  %5 = load i32* %4, align 4, !dbg !171, !tbaa !128
+  %6 = mul nsw i32 %5, %3, !dbg !171
+  %7 = load i32* %activations, align 4, !dbg !171, !tbaa !128
+  %8 = add nsw i32 %7, %6, !dbg !171
+  store i32 %8, i32* %activations, align 4, !dbg !171, !tbaa !128
+  %indvars.iv.next = add nuw nsw i64 %indvars.iv, 1, !dbg !169
+  %exitcond = icmp eq i64 %indvars.iv.next, 5, !dbg !169
+  br i1 %exitcond, label %9, label %1, !dbg !169
+
+; <label>:9                                       ; preds = %1
+  tail call void @add_bias_to_activations(i32* %biases, i32* %activations, i32 1) #4, !dbg !173
+  ret void, !dbg !174
+}
+
+; Function Attrs: nounwind uwtable
+define void @convolution_layer(i32* nocapture readonly %input_activations, i32* nocapture readonly %weights, i32* nocapture %activations) #0 {
+  tail call void @llvm.dbg.value(metadata !{i32* %input_activations}, i64 0, metadata !46), !dbg !175
+  tail call void @llvm.dbg.value(metadata !{i32* %weights}, i64 0, metadata !47), !dbg !176
+  tail call void @llvm.dbg.value(metadata !{i32* %activations}, i64 0, metadata !48), !dbg !177
+  tail call void @llvm.dbg.value(metadata !2, i64 0, metadata !49), !dbg !178
+  br label %.preheader8, !dbg !178
+
+.preheader8:                                      ; preds = %31, %0
+  %indvars.iv23 = phi i64 [ 0, %0 ], [ %indvars.iv.next24, %31 ]
+  %1 = shl i64 %indvars.iv23, 2, !dbg !179
+  br label %.preheader6, !dbg !180
+
+.preheader6:                                      ; preds = %30, %.preheader8
+  %indvars.iv20 = phi i64 [ 0, %.preheader8 ], [ %indvars.iv.next21, %30 ]
+  %2 = shl i64 %indvars.iv20, 1, !dbg !179
+  %3 = add nsw i64 %2, %1, !dbg !179
+  br label %.preheader4, !dbg !181
+
+.preheader4:                                      ; preds = %29, %.preheader6
+  %indvars.iv17 = phi i64 [ 0, %.preheader6 ], [ %indvars.iv.next18, %29 ]
+  %4 = mul nsw i64 %indvars.iv17, 12, !dbg !182
+  %5 = add nsw i64 %indvars.iv17, %indvars.iv23, !dbg !183
+  %6 = mul nsw i64 %5, 9, !dbg !183
+  br label %.preheader, !dbg !184
+
+.preheader:                                       ; preds = %28, %.preheader4
+  %indvars.iv14 = phi i64 [ 0, %.preheader4 ], [ %indvars.iv.next15, %28 ]
+  %7 = mul nsw i64 %indvars.iv14, 6, !dbg !182
+  %8 = add nsw i64 %7, %4, !dbg !182
+  %9 = add nsw i64 %indvars.iv14, %indvars.iv20, !dbg !183
+  %10 = mul nsw i64 %9, 3, !dbg !183
+  %11 = add nsw i64 %10, %6, !dbg !183
+  br label %12, !dbg !185
+
+; <label>:12                                      ; preds = %27, %.preheader
+  %indvars.iv11 = phi i64 [ 0, %.preheader ], [ %indvars.iv.next12, %27 ]
+  %13 = add nsw i64 %3, %indvars.iv11, !dbg !179
+  %14 = getelementptr inbounds i32* %activations, i64 %13, !dbg !179
+  %15 = load i32* %14, align 4, !dbg !179, !tbaa !128
+  tail call void @llvm.dbg.value(metadata !{i32 %15}, i64 0, metadata !55), !dbg !179
+  tail call void @llvm.dbg.value(metadata !2, i64 0, metadata !52), !dbg !186
+  %16 = shl i64 %indvars.iv11, 1, !dbg !182
+  %17 = add nsw i64 %8, %16, !dbg !182
+  br label %18, !dbg !186
+
+; <label>:18                                      ; preds = %18, %12
+  %indvars.iv = phi i64 [ 0, %12 ], [ %indvars.iv.next, %18 ]
+  %tmp.02 = phi i32 [ %15, %12 ], [ %26, %18 ]
+  %19 = add nsw i64 %17, %indvars.iv, !dbg !182
+  %20 = getelementptr inbounds i32* %weights, i64 %19, !dbg !182
+  %21 = load i32* %20, align 4, !dbg !182, !tbaa !128
+  tail call void @llvm.dbg.value(metadata !{i32 %21}, i64 0, metadata !66), !dbg !182
+  %22 = add nsw i64 %11, %indvars.iv, !dbg !183
+  %23 = getelementptr inbounds i32* %input_activations, i64 %22, !dbg !183
+  %24 = load i32* %23, align 4, !dbg !183, !tbaa !128
+  %25 = mul nsw i32 %24, %21, !dbg !183
+  %26 = add nsw i32 %25, %tmp.02, !dbg !183
+  tail call void @llvm.dbg.value(metadata !{i32 %26}, i64 0, metadata !55), !dbg !183
+  %indvars.iv.next = add nuw nsw i64 %indvars.iv, 1, !dbg !186
+  %exitcond = icmp eq i64 %indvars.iv.next, 3, !dbg !186
+  br i1 %exitcond, label %27, label %18, !dbg !186
+
+; <label>:27                                      ; preds = %18
+  store i32 %26, i32* %14, align 4, !dbg !187, !tbaa !128
+  %indvars.iv.next12 = add nuw nsw i64 %indvars.iv11, 1, !dbg !185
+  %exitcond13 = icmp eq i64 %indvars.iv.next12, 2, !dbg !185
+  br i1 %exitcond13, label %28, label %12, !dbg !185
+
+; <label>:28                                      ; preds = %27
+  %indvars.iv.next15 = add nuw nsw i64 %indvars.iv14, 1, !dbg !184
+  %exitcond16 = icmp eq i64 %indvars.iv.next15, 2, !dbg !184
+  br i1 %exitcond16, label %29, label %.preheader, !dbg !184
+
+; <label>:29                                      ; preds = %28
+  %indvars.iv.next18 = add nuw nsw i64 %indvars.iv17, 1, !dbg !181
+  %exitcond19 = icmp eq i64 %indvars.iv.next18, 2, !dbg !181
+  br i1 %exitcond19, label %30, label %.preheader4, !dbg !181
+
+; <label>:30                                      ; preds = %29
+  %indvars.iv.next21 = add nuw nsw i64 %indvars.iv20, 1, !dbg !180
+  %exitcond22 = icmp eq i64 %indvars.iv.next21, 2, !dbg !180
+  br i1 %exitcond22, label %31, label %.preheader6, !dbg !180
+
+; <label>:31                                      ; preds = %30
+  %indvars.iv.next24 = add nuw nsw i64 %indvars.iv23, 1, !dbg !178
+  %exitcond25 = icmp eq i64 %indvars.iv.next24, 2, !dbg !178
+  br i1 %exitcond25, label %32, label %.preheader8, !dbg !178
+
+; <label>:32                                      ; preds = %31
+  ret void, !dbg !188
+}
+
+; Function Attrs: nounwind uwtable
+define void @dnn(i32* nocapture readonly %weights1, i32* nocapture readnone %weights2, i32* nocapture readnone %weights3, i32* nocapture readonly %biases1, i32* nocapture readnone %biases2, i32* nocapture readnone %biases3, i32* nocapture readonly %training_data) #0 {
+  %activations1 = alloca [5 x i32], align 16
+  tail call void @llvm.dbg.value(metadata !{i32* %weights1}, i64 0, metadata !73), !dbg !189
+  tail call void @llvm.dbg.value(metadata !{i32* %weights2}, i64 0, metadata !74), !dbg !190
+  tail call void @llvm.dbg.value(metadata !{i32* %weights3}, i64 0, metadata !75), !dbg !191
+  tail call void @llvm.dbg.value(metadata !{i32* %biases1}, i64 0, metadata !76), !dbg !192
+  tail call void @llvm.dbg.value(metadata !{i32* %biases2}, i64 0, metadata !77), !dbg !193
+  tail call void @llvm.dbg.value(metadata !{i32* %biases3}, i64 0, metadata !78), !dbg !194
+  tail call void @llvm.dbg.value(metadata !{i32* %training_data}, i64 0, metadata !79), !dbg !195
+  tail call void @llvm.dbg.declare(metadata !{[5 x i32]* %activations1}, metadata !82), !dbg !196
+  %1 = getelementptr inbounds [5 x i32]* %activations1, i64 0, i64 0, !dbg !197
+  call void @matrix_vector_product_with_bias_input_layer(i32* %biases1, i32* %weights1, i32* %1, i32* %training_data) #4, !dbg !197
+  ret void, !dbg !198
+}
+
+; Function Attrs: nounwind uwtable
+define i32 @main() #0 {
+  %input = alloca [27 x i32], align 16
+  %weights = alloca [24 x i32], align 16
+  %activations = alloca [8 x i32], align 16
+  %1 = bitcast [27 x i32]* %input to i8*, !dbg !199
+  call void @llvm.lifetime.start(i64 108, i8* %1) #2, !dbg !199
+  tail call void @llvm.dbg.declare(metadata !{[27 x i32]* %input}, metadata !97), !dbg !199
+  %2 = bitcast [24 x i32]* %weights to i8*, !dbg !200
+  call void @llvm.lifetime.start(i64 96, i8* %2) #2, !dbg !200
+  tail call void @llvm.dbg.declare(metadata !{[24 x i32]* %weights}, metadata !102), !dbg !200
+  tail call void @llvm.dbg.declare(metadata !{[8 x i32]* %activations}, metadata !106), !dbg !201
+  tail call void @llvm.dbg.value(metadata !2, i64 0, metadata !110), !dbg !202
+  br label %3, !dbg !202
+
+; <label>:3                                       ; preds = %3, %0
+  %indvars.iv15 = phi i64 [ 0, %0 ], [ %indvars.iv.next16, %3 ]
+  %4 = getelementptr inbounds [27 x i32]* %input, i64 0, i64 %indvars.iv15, !dbg !203
+  store i32 1, i32* %4, align 4, !dbg !203, !tbaa !128
+  %indvars.iv.next16 = add nuw nsw i64 %indvars.iv15, 1, !dbg !202
+  %exitcond17 = icmp eq i64 %indvars.iv.next16, 27, !dbg !202
+  br i1 %exitcond17, label %.preheader6, label %3, !dbg !202
+
+.preheader6:                                      ; preds = %3, %.preheader6
+  %indvars.iv12 = phi i64 [ %indvars.iv.next13, %.preheader6 ], [ 0, %3 ]
+  %5 = getelementptr inbounds [24 x i32]* %weights, i64 0, i64 %indvars.iv12, !dbg !205
+  store i32 1, i32* %5, align 4, !dbg !205, !tbaa !128
+  %indvars.iv.next13 = add nuw nsw i64 %indvars.iv12, 1, !dbg !207
+  %exitcond14 = icmp eq i64 %indvars.iv.next13, 24, !dbg !207
+  br i1 %exitcond14, label %.preheader, label %.preheader6, !dbg !207
+
+.preheader:                                       ; preds = %.preheader6, %.preheader
+  %indvars.iv9 = phi i64 [ %indvars.iv.next10, %.preheader ], [ 0, %.preheader6 ]
+  %6 = getelementptr inbounds [8 x i32]* %activations, i64 0, i64 %indvars.iv9, !dbg !208
+  store i32 0, i32* %6, align 4, !dbg !208, !tbaa !128
+  %indvars.iv.next10 = add nuw nsw i64 %indvars.iv9, 1, !dbg !210
+  %exitcond11 = icmp eq i64 %indvars.iv.next10, 8, !dbg !210
+  br i1 %exitcond11, label %7, label %.preheader, !dbg !210
+
+; <label>:7                                       ; preds = %.preheader
+  %8 = getelementptr inbounds [27 x i32]* %input, i64 0, i64 0, !dbg !211
+  %9 = getelementptr inbounds [24 x i32]* %weights, i64 0, i64 0, !dbg !211
+  %10 = getelementptr inbounds [8 x i32]* %activations, i64 0, i64 0, !dbg !211
+  call void @convolution_layer(i32* %8, i32* %9, i32* %10) #4, !dbg !211
+  tail call void @llvm.dbg.value(metadata !2, i64 0, metadata !116), !dbg !212
+  br label %11, !dbg !212
+
+; <label>:11                                      ; preds = %11, %7
+  %indvars.iv = phi i64 [ 0, %7 ], [ %indvars.iv.next, %11 ]
+  %12 = getelementptr inbounds [8 x i32]* %activations, i64 0, i64 %indvars.iv, !dbg !213
+  %13 = load i32* %12, align 4, !dbg !213, !tbaa !128
+  %14 = tail call i32 (i8*, ...)* @printf(i8* getelementptr inbounds ([7 x i8]* @.str, i64 0, i64 0), i32 %13) #5, !dbg !213
+  %indvars.iv.next = add nuw nsw i64 %indvars.iv, 1, !dbg !212
+  %exitcond = icmp eq i64 %indvars.iv.next, 8, !dbg !212
+  br i1 %exitcond, label %15, label %11, !dbg !212
+
+; <label>:15                                      ; preds = %11
+  call void @llvm.lifetime.end(i64 96, i8* %2) #2, !dbg !215
+  call void @llvm.lifetime.end(i64 108, i8* %1) #2, !dbg !215
+  ret i32 0, !dbg !216
+}
+
+; Function Attrs: nounwind
+declare void @llvm.lifetime.start(i64, i8* nocapture) #2
+
+declare i32 @printf(i8*, ...) #3
+
+; Function Attrs: nounwind
+declare void @llvm.lifetime.end(i64, i8* nocapture) #2
+
+; Function Attrs: nounwind readnone
+declare void @llvm.dbg.value(metadata, i64, metadata) #1
+
+attributes #0 = { nounwind uwtable "less-precise-fpmad"="false" "no-frame-pointer-elim"="false" "no-infs-fp-math"="false" "no-nans-fp-math"="false" "stack-protector-buffer-size"="8" "unsafe-fp-math"="false" "use-soft-float"="false" }
+attributes #1 = { nounwind readnone }
+attributes #2 = { nounwind }
+attributes #3 = { "less-precise-fpmad"="false" "no-frame-pointer-elim"="false" "no-infs-fp-math"="false" "no-nans-fp-math"="false" "stack-protector-buffer-size"="8" "unsafe-fp-math"="false" "use-soft-float"="false" }
+attributes #4 = { nobuiltin }
+attributes #5 = { nobuiltin nounwind }
+
+!llvm.dbg.cu = !{!0}
+!llvm.module.flags = !{!118, !119}
+!llvm.ident = !{!120}
+
+!0 = metadata !{i32 786449, metadata !1, i32 12, metadata !"clang version 3.4 (tags/RELEASE_34/final)", i1 true, metadata !"", i32 0, metadata !2, metadata !2, metadata !3, metadata !2, metadata !2, metadata !""} ; [ DW_TAG_compile_unit ] [/home/fyh/Workspace/ALADDIN/SHOC/other/dnn/dnn.c] [DW_LANG_C99]
+!1 = metadata !{metadata !"dnn.c", metadata !"/home/fyh/Workspace/ALADDIN/SHOC/other/dnn"}
+!2 = metadata !{i32 0}
+!3 = metadata !{metadata !4, metadata !16, metadata !26, metadata !34, metadata !42, metadata !69, metadata !92}
+!4 = metadata !{i32 786478, metadata !5, metadata !6, metadata !"add_bias_to_activations", metadata !"add_bias_to_activations", metadata !"", i32 34, metadata !7, i1 false, i1 true, i32 0, i32 0, null, i32 256, i1 true, void (i32*, i32*, i32)* @add_bias_to_activations, null, null, metadata !11, i32 36} ; [ DW_TAG_subprogram ] [line 34] [def] [scope 36] [add_bias_to_activations]
+!5 = metadata !{metadata !"./dnn.h", metadata !"/home/fyh/Workspace/ALADDIN/SHOC/other/dnn"}
+!6 = metadata !{i32 786473, metadata !5}          ; [ DW_TAG_file_type ] [/home/fyh/Workspace/ALADDIN/SHOC/other/dnn/./dnn.h]
+!7 = metadata !{i32 786453, i32 0, null, metadata !"", i32 0, i64 0, i64 0, i64 0, i32 0, null, metadata !8, i32 0, null, null, null} ; [ DW_TAG_subroutine_type ] [line 0, size 0, align 0, offset 0] [from ]
+!8 = metadata !{null, metadata !9, metadata !9, metadata !10}
+!9 = metadata !{i32 786447, null, null, metadata !"", i32 0, i64 64, i64 64, i64 0, i32 0, metadata !10} ; [ DW_TAG_pointer_type ] [line 0, size 64, align 64, offset 0] [from int]
+!10 = metadata !{i32 786468, null, null, metadata !"int", i32 0, i64 32, i64 32, i64 0, i32 0, i32 5} ; [ DW_TAG_base_type ] [int] [line 0, size 32, align 32, offset 0, enc DW_ATE_signed]
+!11 = metadata !{metadata !12, metadata !13, metadata !14, metadata !15}
+!12 = metadata !{i32 786689, metadata !4, metadata !"biases", metadata !6, i32 16777250, metadata !9, i32 0, i32 0} ; [ DW_TAG_arg_variable ] [biases] [line 34]
+!13 = metadata !{i32 786689, metadata !4, metadata !"activations", metadata !6, i32 33554467, metadata !9, i32 0, i32 0} ; [ DW_TAG_arg_variable ] [activations] [line 35]
+!14 = metadata !{i32 786689, metadata !4, metadata !"size", metadata !6, i32 50331684, metadata !10, i32 0, i32 0} ; [ DW_TAG_arg_variable ] [size] [line 36]
+!15 = metadata !{i32 786688, metadata !4, metadata !"i", metadata !6, i32 37, metadata !10, i32 0, i32 0} ; [ DW_TAG_auto_variable ] [i] [line 37]
+!16 = metadata !{i32 786478, metadata !5, metadata !6, metadata !"matrix_vector_product_with_bias_input_layer", metadata !"matrix_vector_product_with_bias_input_layer", metadata !"", i32 43, metadata !17, i1 false, i1 true, i32 0, i32 0, null, i32 256, i1 true, void (i32*, i32*, i32*, i32*)* @matrix_vector_product_with_bias_input_layer, null, null, metadata !19, i32 46} ; [ DW_TAG_subprogram ] [line 43] [def] [scope 46] [matrix_vector_product_with_bias_input_layer]
+!17 = metadata !{i32 786453, i32 0, null, metadata !"", i32 0, i64 0, i64 0, i64 0, i32 0, null, metadata !18, i32 0, null, null, null} ; [ DW_TAG_subroutine_type ] [line 0, size 0, align 0, offset 0] [from ]
+!18 = metadata !{null, metadata !9, metadata !9, metadata !9, metadata !9}
+!19 = metadata !{metadata !20, metadata !21, metadata !22, metadata !23, metadata !24, metadata !25}
+!20 = metadata !{i32 786689, metadata !16, metadata !"biases", metadata !6, i32 16777259, metadata !9, i32 0, i32 0} ; [ DW_TAG_arg_variable ] [biases] [line 43]
+!21 = metadata !{i32 786689, metadata !16, metadata !"weights", metadata !6, i32 33554476, metadata !9, i32 0, i32 0} ; [ DW_TAG_arg_variable ] [weights] [line 44]
+!22 = metadata !{i32 786689, metadata !16, metadata !"activations", metadata !6, i32 50331693, metadata !9, i32 0, i32 0} ; [ DW_TAG_arg_variable ] [activations] [line 45]
+!23 = metadata !{i32 786689, metadata !16, metadata !"input_sample", metadata !6, i32 67108910, metadata !9, i32 0, i32 0} ; [ DW_TAG_arg_variable ] [input_sample] [line 46]
+!24 = metadata !{i32 786688, metadata !16, metadata !"i", metadata !6, i32 47, metadata !10, i32 0, i32 0} ; [ DW_TAG_auto_variable ] [i] [line 47]
+!25 = metadata !{i32 786688, metadata !16, metadata !"j", metadata !6, i32 47, metadata !10, i32 0, i32 0} ; [ DW_TAG_auto_variable ] [j] [line 47]
+!26 = metadata !{i32 786478, metadata !5, metadata !6, metadata !"matrix_vector_product_with_bias_second_layer", metadata !"matrix_vector_product_with_bias_second_layer", metadata !"", i32 57, metadata !17, i1 false, i1 true, i32 0, i32 0, null, i32 256, i1 true, void (i32*, i32*, i32*, i32*)* @matrix_vector_product_with_bias_second_layer, null, null, metadata !27, i32 60} ; [ DW_TAG_subprogram ] [line 57] [def] [scope 60] [matrix_vector_product_with_bias_second_layer]
+!27 = metadata !{metadata !28, metadata !29, metadata !30, metadata !31, metadata !32, metadata !33}
+!28 = metadata !{i32 786689, metadata !26, metadata !"biases", metadata !6, i32 16777273, metadata !9, i32 0, i32 0} ; [ DW_TAG_arg_variable ] [biases] [line 57]
+!29 = metadata !{i32 786689, metadata !26, metadata !"weights", metadata !6, i32 33554490, metadata !9, i32 0, i32 0} ; [ DW_TAG_arg_variable ] [weights] [line 58]
+!30 = metadata !{i32 786689, metadata !26, metadata !"activations", metadata !6, i32 50331707, metadata !9, i32 0, i32 0} ; [ DW_TAG_arg_variable ] [activations] [line 59]
+!31 = metadata !{i32 786689, metadata !26, metadata !"input_activations", metadata !6, i32 67108924, metadata !9, i32 0, i32 0} ; [ DW_TAG_arg_variable ] [input_activations] [line 60]
+!32 = metadata !{i32 786688, metadata !26, metadata !"i", metadata !6, i32 61, metadata !10, i32 0, i32 0} ; [ DW_TAG_auto_variable ] [i] [line 61]
+!33 = metadata !{i32 786688, metadata !26, metadata !"j", metadata !6, i32 61, metadata !10, i32 0, i32 0} ; [ DW_TAG_auto_variable ] [j] [line 61]
+!34 = metadata !{i32 786478, metadata !5, metadata !6, metadata !"matrix_vector_product_with_bias_output_layer", metadata !"matrix_vector_product_with_bias_output_layer", metadata !"", i32 71, metadata !17, i1 false, i1 true, i32 0, i32 0, null, i32 256, i1 true, void (i32*, i32*, i32*, i32*)* @matrix_vector_product_with_bias_output_layer, null, null, metadata !35, i32 74} ; [ DW_TAG_subprogram ] [line 71] [def] [scope 74] [matrix_vector_product_with_bias_output_layer]
+!35 = metadata !{metadata !36, metadata !37, metadata !38, metadata !39, metadata !40, metadata !41}
+!36 = metadata !{i32 786689, metadata !34, metadata !"biases", metadata !6, i32 16777287, metadata !9, i32 0, i32 0} ; [ DW_TAG_arg_variable ] [biases] [line 71]
+!37 = metadata !{i32 786689, metadata !34, metadata !"weights", metadata !6, i32 33554504, metadata !9, i32 0, i32 0} ; [ DW_TAG_arg_variable ] [weights] [line 72]
+!38 = metadata !{i32 786689, metadata !34, metadata !"activations", metadata !6, i32 50331721, metadata !9, i32 0, i32 0} ; [ DW_TAG_arg_variable ] [activations] [line 73]
+!39 = metadata !{i32 786689, metadata !34, metadata !"input_activations", metadata !6, i32 67108938, metadata !9, i32 0, i32 0} ; [ DW_TAG_arg_variable ] [input_activations] [line 74]
+!40 = metadata !{i32 786688, metadata !34, metadata !"i", metadata !6, i32 75, metadata !10, i32 0, i32 0} ; [ DW_TAG_auto_variable ] [i] [line 75]
+!41 = metadata !{i32 786688, metadata !34, metadata !"j", metadata !6, i32 75, metadata !10, i32 0, i32 0} ; [ DW_TAG_auto_variable ] [j] [line 75]
+!42 = metadata !{i32 786478, metadata !5, metadata !6, metadata !"convolution_layer", metadata !"convolution_layer", metadata !"", i32 86, metadata !43, i1 false, i1 true, i32 0, i32 0, null, i32 256, i1 true, void (i32*, i32*, i32*)* @convolution_layer, null, null, metadata !45, i32 88} ; [ DW_TAG_subprogram ] [line 86] [def] [scope 88] [convolution_layer]
+!43 = metadata !{i32 786453, i32 0, null, metadata !"", i32 0, i64 0, i64 0, i64 0, i32 0, null, metadata !44, i32 0, null, null, null} ; [ DW_TAG_subroutine_type ] [line 0, size 0, align 0, offset 0] [from ]
+!44 = metadata !{null, metadata !9, metadata !9, metadata !9}
+!45 = metadata !{metadata !46, metadata !47, metadata !48, metadata !49, metadata !50, metadata !51, metadata !52, metadata !53, metadata !54, metadata !55, metadata !66}
+!46 = metadata !{i32 786689, metadata !42, metadata !"input_activations", metadata !6, i32 16777302, metadata !9, i32 0, i32 0} ; [ DW_TAG_arg_variable ] [input_activations] [line 86]
+!47 = metadata !{i32 786689, metadata !42, metadata !"weights", metadata !6, i32 33554519, metadata !9, i32 0, i32 0} ; [ DW_TAG_arg_variable ] [weights] [line 87]
+!48 = metadata !{i32 786689, metadata !42, metadata !"activations", metadata !6, i32 50331736, metadata !9, i32 0, i32 0} ; [ DW_TAG_arg_variable ] [activations] [line 88]
+!49 = metadata !{i32 786688, metadata !42, metadata !"i", metadata !6, i32 89, metadata !10, i32 0, i32 0} ; [ DW_TAG_auto_variable ] [i] [line 89]
+!50 = metadata !{i32 786688, metadata !42, metadata !"j", metadata !6, i32 89, metadata !10, i32 0, i32 0} ; [ DW_TAG_auto_variable ] [j] [line 89]
+!51 = metadata !{i32 786688, metadata !42, metadata !"m", metadata !6, i32 89, metadata !10, i32 0, i32 0} ; [ DW_TAG_auto_variable ] [m] [line 89]
+!52 = metadata !{i32 786688, metadata !42, metadata !"n", metadata !6, i32 89, metadata !10, i32 0, i32 0} ; [ DW_TAG_auto_variable ] [n] [line 89]
+!53 = metadata !{i32 786688, metadata !42, metadata !"k1", metadata !6, i32 89, metadata !10, i32 0, i32 0} ; [ DW_TAG_auto_variable ] [k1] [line 89]
+!54 = metadata !{i32 786688, metadata !42, metadata !"k2", metadata !6, i32 89, metadata !10, i32 0, i32 0} ; [ DW_TAG_auto_variable ] [k2] [line 89]
+!55 = metadata !{i32 786688, metadata !56, metadata !"tmp", metadata !6, i32 98, metadata !10, i32 0, i32 0} ; [ DW_TAG_auto_variable ] [tmp] [line 98]
+!56 = metadata !{i32 786443, metadata !5, metadata !57, i32 96, i32 0, i32 23} ; [ DW_TAG_lexical_block ] [/home/fyh/Workspace/ALADDIN/SHOC/other/dnn/./dnn.h]
+!57 = metadata !{i32 786443, metadata !5, metadata !58, i32 96, i32 0, i32 22} ; [ DW_TAG_lexical_block ] [/home/fyh/Workspace/ALADDIN/SHOC/other/dnn/./dnn.h]
+!58 = metadata !{i32 786443, metadata !5, metadata !59, i32 94, i32 0, i32 21} ; [ DW_TAG_lexical_block ] [/home/fyh/Workspace/ALADDIN/SHOC/other/dnn/./dnn.h]
+!59 = metadata !{i32 786443, metadata !5, metadata !60, i32 94, i32 0, i32 20} ; [ DW_TAG_lexical_block ] [/home/fyh/Workspace/ALADDIN/SHOC/other/dnn/./dnn.h]
+!60 = metadata !{i32 786443, metadata !5, metadata !61, i32 93, i32 0, i32 19} ; [ DW_TAG_lexical_block ] [/home/fyh/Workspace/ALADDIN/SHOC/other/dnn/./dnn.h]
+!61 = metadata !{i32 786443, metadata !5, metadata !62, i32 93, i32 0, i32 18} ; [ DW_TAG_lexical_block ] [/home/fyh/Workspace/ALADDIN/SHOC/other/dnn/./dnn.h]
+!62 = metadata !{i32 786443, metadata !5, metadata !63, i32 92, i32 0, i32 17} ; [ DW_TAG_lexical_block ] [/home/fyh/Workspace/ALADDIN/SHOC/other/dnn/./dnn.h]
+!63 = metadata !{i32 786443, metadata !5, metadata !64, i32 92, i32 0, i32 16} ; [ DW_TAG_lexical_block ] [/home/fyh/Workspace/ALADDIN/SHOC/other/dnn/./dnn.h]
+!64 = metadata !{i32 786443, metadata !5, metadata !65, i32 91, i32 0, i32 15} ; [ DW_TAG_lexical_block ] [/home/fyh/Workspace/ALADDIN/SHOC/other/dnn/./dnn.h]
+!65 = metadata !{i32 786443, metadata !5, metadata !42, i32 91, i32 0, i32 14} ; [ DW_TAG_lexical_block ] [/home/fyh/Workspace/ALADDIN/SHOC/other/dnn/./dnn.h]
+!66 = metadata !{i32 786688, metadata !67, metadata !"w_tmp", metadata !6, i32 102, metadata !10, i32 0, i32 0} ; [ DW_TAG_auto_variable ] [w_tmp] [line 102]
+!67 = metadata !{i32 786443, metadata !5, metadata !68, i32 100, i32 0, i32 25} ; [ DW_TAG_lexical_block ] [/home/fyh/Workspace/ALADDIN/SHOC/other/dnn/./dnn.h]
+!68 = metadata !{i32 786443, metadata !5, metadata !56, i32 100, i32 0, i32 24} ; [ DW_TAG_lexical_block ] [/home/fyh/Workspace/ALADDIN/SHOC/other/dnn/./dnn.h]
+!69 = metadata !{i32 786478, metadata !5, metadata !6, metadata !"dnn", metadata !"dnn", metadata !"", i32 126, metadata !70, i1 false, i1 true, i32 0, i32 0, null, i32 256, i1 true, void (i32*, i32*, i32*, i32*, i32*, i32*, i32*)* @dnn, null, null, metadata !72, i32 132} ; [ DW_TAG_subprogram ] [line 126] [def] [scope 132] [dnn]
+!70 = metadata !{i32 786453, i32 0, null, metadata !"", i32 0, i64 0, i64 0, i64 0, i32 0, null, metadata !71, i32 0, null, null, null} ; [ DW_TAG_subroutine_type ] [line 0, size 0, align 0, offset 0] [from ]
+!71 = metadata !{null, metadata !9, metadata !9, metadata !9, metadata !9, metadata !9, metadata !9, metadata !9}
+!72 = metadata !{metadata !73, metadata !74, metadata !75, metadata !76, metadata !77, metadata !78, metadata !79, metadata !80, metadata !81, metadata !82, metadata !86, metadata !87, metadata !91}
+!73 = metadata !{i32 786689, metadata !69, metadata !"weights1", metadata !6, i32 16777342, metadata !9, i32 0, i32 0} ; [ DW_TAG_arg_variable ] [weights1] [line 126]
+!74 = metadata !{i32 786689, metadata !69, metadata !"weights2", metadata !6, i32 33554559, metadata !9, i32 0, i32 0} ; [ DW_TAG_arg_variable ] [weights2] [line 127]
+!75 = metadata !{i32 786689, metadata !69, metadata !"weights3", metadata !6, i32 50331776, metadata !9, i32 0, i32 0} ; [ DW_TAG_arg_variable ] [weights3] [line 128]
+!76 = metadata !{i32 786689, metadata !69, metadata !"biases1", metadata !6, i32 67108993, metadata !9, i32 0, i32 0} ; [ DW_TAG_arg_variable ] [biases1] [line 129]
+!77 = metadata !{i32 786689, metadata !69, metadata !"biases2", metadata !6, i32 83886210, metadata !9, i32 0, i32 0} ; [ DW_TAG_arg_variable ] [biases2] [line 130]
+!78 = metadata !{i32 786689, metadata !69, metadata !"biases3", metadata !6, i32 100663427, metadata !9, i32 0, i32 0} ; [ DW_TAG_arg_variable ] [biases3] [line 131]
+!79 = metadata !{i32 786689, metadata !69, metadata !"training_data", metadata !6, i32 117440644, metadata !9, i32 0, i32 0} ; [ DW_TAG_arg_variable ] [training_data] [line 132]
+!80 = metadata !{i32 786688, metadata !69, metadata !"i", metadata !6, i32 133, metadata !10, i32 0, i32 0} ; [ DW_TAG_auto_variable ] [i] [line 133]
+!81 = metadata !{i32 786688, metadata !69, metadata !"j", metadata !6, i32 133, metadata !10, i32 0, i32 0} ; [ DW_TAG_auto_variable ] [j] [line 133]
+!82 = metadata !{i32 786688, metadata !69, metadata !"activations1", metadata !6, i32 135, metadata !83, i32 0, i32 0} ; [ DW_TAG_auto_variable ] [activations1] [line 135]
+!83 = metadata !{i32 786433, null, null, metadata !"", i32 0, i64 160, i64 32, i32 0, i32 0, metadata !10, metadata !84, i32 0, null, null, null} ; [ DW_TAG_array_type ] [line 0, size 160, align 32, offset 0] [from int]
+!84 = metadata !{metadata !85}
+!85 = metadata !{i32 786465, i64 0, i64 5}        ; [ DW_TAG_subrange_type ] [0, 4]
+!86 = metadata !{i32 786688, metadata !69, metadata !"activations2", metadata !6, i32 136, metadata !83, i32 0, i32 0} ; [ DW_TAG_auto_variable ] [activations2] [line 136]
+!87 = metadata !{i32 786688, metadata !69, metadata !"activations3", metadata !6, i32 137, metadata !88, i32 0, i32 0} ; [ DW_TAG_auto_variable ] [activations3] [line 137]
+!88 = metadata !{i32 786433, null, null, metadata !"", i32 0, i64 32, i64 32, i32 0, i32 0, metadata !10, metadata !89, i32 0, null, null, null} ; [ DW_TAG_array_type ] [line 0, size 32, align 32, offset 0] [from int]
+!89 = metadata !{metadata !90}
+!90 = metadata !{i32 786465, i64 0, i64 1}        ; [ DW_TAG_subrange_type ] [0, 0]
+!91 = metadata !{i32 786688, metadata !69, metadata !"net_outputs", metadata !6, i32 138, metadata !88, i32 0, i32 0} ; [ DW_TAG_auto_variable ] [net_outputs] [line 138]
+!92 = metadata !{i32 786478, metadata !1, metadata !93, metadata !"main", metadata !"main", metadata !"", i32 5, metadata !94, i1 false, i1 true, i32 0, i32 0, null, i32 0, i1 true, i32 ()* @main, null, null, metadata !96, i32 5} ; [ DW_TAG_subprogram ] [line 5] [def] [main]
+!93 = metadata !{i32 786473, metadata !1}         ; [ DW_TAG_file_type ] [/home/fyh/Workspace/ALADDIN/SHOC/other/dnn/dnn.c]
+!94 = metadata !{i32 786453, i32 0, null, metadata !"", i32 0, i64 0, i64 0, i64 0, i32 0, null, metadata !95, i32 0, null, null, null} ; [ DW_TAG_subroutine_type ] [line 0, size 0, align 0, offset 0] [from ]
+!95 = metadata !{metadata !10}
+!96 = metadata !{metadata !97, metadata !102, metadata !106, metadata !110, metadata !112, metadata !114, metadata !116}
+!97 = metadata !{i32 786688, metadata !98, metadata !"input", metadata !93, i32 6, metadata !99, i32 0, i32 0} ; [ DW_TAG_auto_variable ] [input] [line 6]
+!98 = metadata !{i32 786443, metadata !1, metadata !92} ; [ DW_TAG_lexical_block ] [/home/fyh/Workspace/ALADDIN/SHOC/other/dnn/dnn.c]
+!99 = metadata !{i32 786433, null, null, metadata !"", i32 0, i64 864, i64 32, i32 0, i32 0, metadata !10, metadata !100, i32 0, null, null, null} ; [ DW_TAG_array_type ] [line 0, size 864, align 32, offset 0] [from int]
+!100 = metadata !{metadata !101}
+!101 = metadata !{i32 786465, i64 0, i64 27}      ; [ DW_TAG_subrange_type ] [0, 26]
+!102 = metadata !{i32 786688, metadata !98, metadata !"weights", metadata !93, i32 7, metadata !103, i32 0, i32 0} ; [ DW_TAG_auto_variable ] [weights] [line 7]
+!103 = metadata !{i32 786433, null, null, metadata !"", i32 0, i64 768, i64 32, i32 0, i32 0, metadata !10, metadata !104, i32 0, null, null, null} ; [ DW_TAG_array_type ] [line 0, size 768, align 32, offset 0] [from int]
+!104 = metadata !{metadata !105}
+!105 = metadata !{i32 786465, i64 0, i64 24}      ; [ DW_TAG_subrange_type ] [0, 23]
+!106 = metadata !{i32 786688, metadata !98, metadata !"activations", metadata !93, i32 8, metadata !107, i32 0, i32 0} ; [ DW_TAG_auto_variable ] [activations] [line 8]
+!107 = metadata !{i32 786433, null, null, metadata !"", i32 0, i64 256, i64 32, i32 0, i32 0, metadata !10, metadata !108, i32 0, null, null, null} ; [ DW_TAG_array_type ] [line 0, size 256, align 32, offset 0] [from int]
+!108 = metadata !{metadata !109}
+!109 = metadata !{i32 786465, i64 0, i64 8}       ; [ DW_TAG_subrange_type ] [0, 7]
+!110 = metadata !{i32 786688, metadata !111, metadata !"i", metadata !93, i32 11, metadata !10, i32 0, i32 0} ; [ DW_TAG_auto_variable ] [i] [line 11]
+!111 = metadata !{i32 786443, metadata !1, metadata !98, i32 11, i32 0, i32 26} ; [ DW_TAG_lexical_block ] [/home/fyh/Workspace/ALADDIN/SHOC/other/dnn/dnn.c]
+!112 = metadata !{i32 786688, metadata !113, metadata !"i", metadata !93, i32 14, metadata !10, i32 0, i32 0} ; [ DW_TAG_auto_variable ] [i] [line 14]
+!113 = metadata !{i32 786443, metadata !1, metadata !98, i32 14, i32 0, i32 28} ; [ DW_TAG_lexical_block ] [/home/fyh/Workspace/ALADDIN/SHOC/other/dnn/dnn.c]
+!114 = metadata !{i32 786688, metadata !115, metadata !"i", metadata !93, i32 17, metadata !10, i32 0, i32 0} ; [ DW_TAG_auto_variable ] [i] [line 17]
+!115 = metadata !{i32 786443, metadata !1, metadata !98, i32 17, i32 0, i32 30} ; [ DW_TAG_lexical_block ] [/home/fyh/Workspace/ALADDIN/SHOC/other/dnn/dnn.c]
+!116 = metadata !{i32 786688, metadata !117, metadata !"i", metadata !93, i32 23, metadata !10, i32 0, i32 0} ; [ DW_TAG_auto_variable ] [i] [line 23]
+!117 = metadata !{i32 786443, metadata !1, metadata !98, i32 23, i32 0, i32 32} ; [ DW_TAG_lexical_block ] [/home/fyh/Workspace/ALADDIN/SHOC/other/dnn/dnn.c]
+!118 = metadata !{i32 2, metadata !"Dwarf Version", i32 4}
+!119 = metadata !{i32 1, metadata !"Debug Info Version", i32 1}
+!120 = metadata !{metadata !"clang version 3.4 (tags/RELEASE_34/final)"}
+!121 = metadata !{i32 34, i32 0, metadata !4, null}
+!122 = metadata !{i32 35, i32 0, metadata !4, null}
+!123 = metadata !{i32 36, i32 0, metadata !4, null}
+!124 = metadata !{i32 38, i32 0, metadata !125, null}
+!125 = metadata !{i32 786443, metadata !5, metadata !4, i32 38, i32 0, i32 0} ; [ DW_TAG_lexical_block ] [/home/fyh/Workspace/ALADDIN/SHOC/other/dnn/./dnn.h]
+!126 = metadata !{i32 39, i32 0, metadata !127, null}
+!127 = metadata !{i32 786443, metadata !5, metadata !125, i32 38, i32 0, i32 1} ; [ DW_TAG_lexical_block ] [/home/fyh/Workspace/ALADDIN/SHOC/other/dnn/./dnn.h]
+!128 = metadata !{metadata !129, metadata !129, i64 0}
+!129 = metadata !{metadata !"int", metadata !130, i64 0}
+!130 = metadata !{metadata !"omnipotent char", metadata !131, i64 0}
+!131 = metadata !{metadata !"Simple C/C++ TBAA"}
+!132 = metadata !{i32 41, i32 0, metadata !4, null}
+!133 = metadata !{i32 43, i32 0, metadata !16, null}
+!134 = metadata !{i32 44, i32 0, metadata !16, null}
+!135 = metadata !{i32 45, i32 0, metadata !16, null}
+!136 = metadata !{i32 46, i32 0, metadata !16, null}
+!137 = metadata !{i32 48, i32 0, metadata !138, null}
+!138 = metadata !{i32 786443, metadata !5, metadata !16, i32 48, i32 0, i32 2} ; [ DW_TAG_lexical_block ] [/home/fyh/Workspace/ALADDIN/SHOC/other/dnn/./dnn.h]
+!139 = metadata !{i32 49, i32 0, metadata !140, null}
+!140 = metadata !{i32 786443, metadata !5, metadata !138, i32 48, i32 0, i32 3} ; [ DW_TAG_lexical_block ] [/home/fyh/Workspace/ALADDIN/SHOC/other/dnn/./dnn.h]
+!141 = metadata !{i32 50, i32 0, metadata !142, null}
+!142 = metadata !{i32 786443, metadata !5, metadata !140, i32 50, i32 0, i32 4} ; [ DW_TAG_lexical_block ] [/home/fyh/Workspace/ALADDIN/SHOC/other/dnn/./dnn.h]
+!143 = metadata !{i32 51, i32 0, metadata !144, null}
+!144 = metadata !{i32 786443, metadata !5, metadata !142, i32 50, i32 0, i32 5} ; [ DW_TAG_lexical_block ] [/home/fyh/Workspace/ALADDIN/SHOC/other/dnn/./dnn.h]
+!145 = metadata !{i32 54, i32 0, metadata !16, null}
+!146 = metadata !{i32 55, i32 0, metadata !16, null}
+!147 = metadata !{i32 57, i32 0, metadata !26, null}
+!148 = metadata !{i32 58, i32 0, metadata !26, null} ; [ DW_TAG_imported_module ]
+!149 = metadata !{i32 59, i32 0, metadata !26, null}
+!150 = metadata !{i32 60, i32 0, metadata !26, null}
+!151 = metadata !{i32 62, i32 0, metadata !152, null}
+!152 = metadata !{i32 786443, metadata !5, metadata !26, i32 62, i32 0, i32 6} ; [ DW_TAG_lexical_block ] [/home/fyh/Workspace/ALADDIN/SHOC/other/dnn/./dnn.h]
+!153 = metadata !{i32 63, i32 0, metadata !154, null}
+!154 = metadata !{i32 786443, metadata !5, metadata !152, i32 62, i32 0, i32 7} ; [ DW_TAG_lexical_block ] [/home/fyh/Workspace/ALADDIN/SHOC/other/dnn/./dnn.h]
+!155 = metadata !{i32 64, i32 0, metadata !156, null}
+!156 = metadata !{i32 786443, metadata !5, metadata !154, i32 64, i32 0, i32 8} ; [ DW_TAG_lexical_block ] [/home/fyh/Workspace/ALADDIN/SHOC/other/dnn/./dnn.h]
+!157 = metadata !{i32 65, i32 0, metadata !158, null}
+!158 = metadata !{i32 786443, metadata !5, metadata !156, i32 64, i32 0, i32 9} ; [ DW_TAG_lexical_block ] [/home/fyh/Workspace/ALADDIN/SHOC/other/dnn/./dnn.h]
+!159 = metadata !{i32 68, i32 0, metadata !26, null}
+!160 = metadata !{i32 69, i32 0, metadata !26, null}
+!161 = metadata !{i32 71, i32 0, metadata !34, null}
+!162 = metadata !{i32 72, i32 0, metadata !34, null}
+!163 = metadata !{i32 73, i32 0, metadata !34, null}
+!164 = metadata !{i32 74, i32 0, metadata !34, null}
+!165 = metadata !{i32 76, i32 0, metadata !166, null}
+!166 = metadata !{i32 786443, metadata !5, metadata !34, i32 76, i32 0, i32 10} ; [ DW_TAG_lexical_block ] [/home/fyh/Workspace/ALADDIN/SHOC/other/dnn/./dnn.h]
+!167 = metadata !{i32 77, i32 0, metadata !168, null}
+!168 = metadata !{i32 786443, metadata !5, metadata !166, i32 76, i32 0, i32 11} ; [ DW_TAG_lexical_block ] [/home/fyh/Workspace/ALADDIN/SHOC/other/dnn/./dnn.h]
+!169 = metadata !{i32 78, i32 0, metadata !170, null}
+!170 = metadata !{i32 786443, metadata !5, metadata !168, i32 78, i32 0, i32 12} ; [ DW_TAG_lexical_block ] [/home/fyh/Workspace/ALADDIN/SHOC/other/dnn/./dnn.h]
+!171 = metadata !{i32 79, i32 0, metadata !172, null}
+!172 = metadata !{i32 786443, metadata !5, metadata !170, i32 78, i32 0, i32 13} ; [ DW_TAG_lexical_block ] [/home/fyh/Workspace/ALADDIN/SHOC/other/dnn/./dnn.h]
+!173 = metadata !{i32 82, i32 0, metadata !34, null}
+!174 = metadata !{i32 83, i32 0, metadata !34, null}
+!175 = metadata !{i32 86, i32 0, metadata !42, null}
+!176 = metadata !{i32 87, i32 0, metadata !42, null}
+!177 = metadata !{i32 88, i32 0, metadata !42, null}
+!178 = metadata !{i32 91, i32 0, metadata !65, null}
+!179 = metadata !{i32 98, i32 0, metadata !56, null}
+!180 = metadata !{i32 92, i32 0, metadata !63, null}
+!181 = metadata !{i32 93, i32 0, metadata !61, null}
+!182 = metadata !{i32 102, i32 0, metadata !67, null}
+!183 = metadata !{i32 108, i32 0, metadata !67, null}
+!184 = metadata !{i32 94, i32 0, metadata !59, null}
+!185 = metadata !{i32 96, i32 0, metadata !57, null}
+!186 = metadata !{i32 100, i32 0, metadata !68, null}
+!187 = metadata !{i32 116, i32 0, metadata !56, null}
+!188 = metadata !{i32 123, i32 0, metadata !42, null}
+!189 = metadata !{i32 126, i32 0, metadata !69, null}
+!190 = metadata !{i32 127, i32 0, metadata !69, null}
+!191 = metadata !{i32 128, i32 0, metadata !69, null}
+!192 = metadata !{i32 129, i32 0, metadata !69, null}
+!193 = metadata !{i32 130, i32 0, metadata !69, null}
+!194 = metadata !{i32 131, i32 0, metadata !69, null}
+!195 = metadata !{i32 132, i32 0, metadata !69, null}
+!196 = metadata !{i32 135, i32 0, metadata !69, null}
+!197 = metadata !{i32 149, i32 0, metadata !69, null}
+!198 = metadata !{i32 163, i32 0, metadata !69, null}
+!199 = metadata !{i32 6, i32 0, metadata !98, null}
+!200 = metadata !{i32 7, i32 0, metadata !98, null}
+!201 = metadata !{i32 8, i32 0, metadata !98, null} ; [ DW_TAG_imported_declaration ]
+!202 = metadata !{i32 11, i32 0, metadata !111, null}
+!203 = metadata !{i32 12, i32 0, metadata !204, null}
+!204 = metadata !{i32 786443, metadata !1, metadata !111, i32 11, i32 0, i32 27} ; [ DW_TAG_lexical_block ] [/home/fyh/Workspace/ALADDIN/SHOC/other/dnn/dnn.c]
+!205 = metadata !{i32 15, i32 0, metadata !206, null}
+!206 = metadata !{i32 786443, metadata !1, metadata !113, i32 14, i32 0, i32 29} ; [ DW_TAG_lexical_block ] [/home/fyh/Workspace/ALADDIN/SHOC/other/dnn/dnn.c]
+!207 = metadata !{i32 14, i32 0, metadata !113, null}
+!208 = metadata !{i32 18, i32 0, metadata !209, null}
+!209 = metadata !{i32 786443, metadata !1, metadata !115, i32 17, i32 0, i32 31} ; [ DW_TAG_lexical_block ] [/home/fyh/Workspace/ALADDIN/SHOC/other/dnn/dnn.c]
+!210 = metadata !{i32 17, i32 0, metadata !115, null}
+!211 = metadata !{i32 21, i32 0, metadata !98, null}
+!212 = metadata !{i32 23, i32 0, metadata !117, null}
+!213 = metadata !{i32 24, i32 0, metadata !214, null}
+!214 = metadata !{i32 786443, metadata !1, metadata !117, i32 23, i32 0, i32 33} ; [ DW_TAG_lexical_block ] [/home/fyh/Workspace/ALADDIN/SHOC/other/dnn/dnn.c]
+!215 = metadata !{i32 27, i32 0, metadata !98, null}
+!216 = metadata !{i32 28, i32 0, metadata !98, null}

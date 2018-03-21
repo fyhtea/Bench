@@ -1,0 +1,7 @@
+partition,cyclic,a,65536,4,16
+partition,cyclic,b,65536,4,256
+partition,cyclic,c,8192,4,16
+flatten,tile,loopj
+unrolling,tile,loopi,16
+pipelining,0
+cycle_time,1

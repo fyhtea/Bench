@@ -1,0 +1,8 @@
+cycles,6,842
+6,test-fp-sp-mul,test-fp-dp-mul,test-fp-sp-add,test-fp-dp-add,test-mul,test-add,test-bit,test-shifter,test-trig,reg,a-read,a-write,c-read,c-write,b-read,b-write,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+1,0,0,0,0,0,0,0,8,0,0,88,8,0,8,0,64,0,
+2,0,0,0,0,64,56,0,0,0,80,16,0,0,0,0,0,0,
+3,0,0,0,0,0,8,0,0,0,16,8,0,0,0,0,0,0,
+4,0,0,0,0,0,0,0,0,0,16,0,0,0,0,8,0,0,
+5,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,

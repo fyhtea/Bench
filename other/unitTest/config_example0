@@ -1,0 +1,8 @@
+partition,cyclic,mult_result,10240,4,8
+partition,complete,add_result
+partition,complete,stage1
+partition,complete,stage2
+unrolling,AdderTree3,loopAddStage1,4
+unrolling,AdderTree3,loopAddStage2,2
+pipelining,1
+cycle_time,10

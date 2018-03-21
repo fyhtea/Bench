@@ -1,0 +1,23 @@
+===============================
+        Aladdin Results        
+===============================
+Running : bb_gemm
+Cycle : 15 cycles
+Avg Power: 1.59564 mW
+Idle FU Cycles: 5 cycles
+Avg FU Power: 1.30408 mW
+Avg FU Dynamic Power: 1.13009 mW
+Avg FU leakage Power: 0.173987 mW
+Avg MEM Power: 0.291563 mW
+Avg MEM Dynamic Power: 0.166025 mW
+Avg MEM Leakage Power: 0.125538 mW
+Total Area: 24259.2 uM^2
+FU Area: 15835.1 uM^2
+MEM Area: 8424.14 uM^2
+Num of Multipliers (32-bit): 2
+Num of Adders (32-bit): 8
+Num of Shifters (32-bit): 4
+Num of Registers (32-bit): 22
+===============================
+        Aladdin Results        
+===============================

@@ -1,0 +1,6 @@
+partition,cyclic,a,20,4,2
+partition,cyclic,b,20,4,2
+partition,cyclic,c,20,4,2
+flatten,triad,triad
+pipelining,0
+cycle_time,10

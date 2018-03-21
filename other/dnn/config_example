@@ -1,0 +1,7 @@
+partition,cyclic,weights,192,4,6
+partition,cyclic,input_activations,1024,4,3
+partition,cyclic,activations,1024,4,2
+unrolling,convolution_layer,loopm,2
+flatten,convolution_layer,loopn
+pipelining,0
+cycle_time,10

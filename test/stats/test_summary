@@ -1,0 +1,23 @@
+===============================
+        Aladdin Results        
+===============================
+Running : test
+Cycle : 6 cycles
+Avg Power: 60.8204 mW
+Idle FU Cycles: 3 cycles
+Avg FU Power: 54.5418 mW
+Avg FU Dynamic Power: 40.1778 mW
+Avg FU leakage Power: 14.364 mW
+Avg MEM Power: 6.27861 mW
+Avg MEM Dynamic Power: 2.66312 mW
+Avg MEM Leakage Power: 3.61548 mW
+Total Area: 1.58218e+06 uM^2
+FU Area: 1.33956e+06 uM^2
+MEM Area: 242615 uM^2
+Num of Multipliers (32-bit): 256
+Num of Adders (32-bit): 256
+Num of Shifters (32-bit): 16
+Num of Registers (32-bit): 592
+===============================
+        Aladdin Results        
+===============================

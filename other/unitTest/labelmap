@@ -1,0 +1,8 @@
+AdderTree1/loopAddStage1 37
+AdderTree3/loopAddStage1 67
+AdderTree3/loopAddStage2 70
+Reduction/loopAddStage1 28
+VecMult/loopVecMult 17
+add_bias_to_activations/loopbias 90
+matrix_vector_product_with_bias_input_layer/loop1_i 100
+matrix_vector_product_with_bias_input_layer/loop1_j 102

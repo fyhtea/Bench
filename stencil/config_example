@@ -1,0 +1,6 @@
+partition,block,orig,4096,4,9
+partition,block,sol,4096,4,9
+partition,block,filter,50,4,9
+unrolling,stencil,outer,1
+pipelining,3
+cycle_time,10
